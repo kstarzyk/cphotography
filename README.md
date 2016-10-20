@@ -46,7 +46,7 @@ optional arguments:
 ## Examples
 (python3 is slight faster)
 ```
-$ python3 pipe.py lighthouse_RAW.png lighthouse_result.png --gamma 2.2 --filter_density=1 --print_everything --edge_directed
-$ python3 pipe.py signs-small.png signs_result.png --gamma 1.9 --print_everything --edge_directed --channels_reversed
+$ python3 pipe.py lighthouse_RAW.png  --gamma 2.2 --filter_density=1 --print_everything --edge_directed
+$ python3 pipe.py signs-small.png  --gamma 1.9 --print_everything --edge_directed --channels_reversed
 
 ```
