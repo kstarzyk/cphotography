@@ -116,7 +116,7 @@ def demored(ch, w, h, pos):
 def demosaicing_edge(ch, pos):
   w, h = len(ch[0]), len(ch)
   print("DEMOSAICING (EDGE-DIRECTED)")
-  ch[0][0] = (ch[0][1] + ch[1][0]) / 2
+  ch[0][0][pos] = (ch[0][1][pos] + ch[1][0][pos]) / 2
   for col in range(2, w-1, 2):
     ch[0][col][pos] = (int(ch[0][col-1][pos]) + int(ch[1][col][pos]) + int(ch[0][col+1][pos]) ) / 3
 
@@ -124,7 +124,7 @@ def demosaicing_edge(ch, pos):
     st = 1
     C = 2
     if row % 2 == 0:
-      ch[row][0] = (int(ch[row-1][0][pos]) + int(ch[row][1][pos]) + int(ch[row+1][0][pos])) / 3
+      ch[row][0][pos] = (int(ch[row-1][0][pos]) + int(ch[row][1][pos]) + int(ch[row+1][0][pos])) / 3
       st = 2
       C = 0
     for col in range(st, w-1, 2):
@@ -137,13 +137,15 @@ def demosaicing_edge(ch, pos):
           ch[row][col][pos] = ( int(ch[row][col-1][pos]) +  int(ch[row][col+1][pos])  ) / 2
         else:
           ch[row][col][pos] = (int(ch[row-1][col][pos]) + int(ch[row+1][col][pos]) + int(ch[row][col-1][pos]) + int(ch[row][col+1][pos])) / 4
+      else:
+        ch[row][col][pos] = (int(ch[row-1][col][pos]) + int(ch[row+1][col][pos]) + int(ch[row][col-1][pos]) + int(ch[row][col+1][pos])) / 4
+
     if row % 2 == 1:
-      ch[row][w-1] = (int(ch[row][w-2][pos]) + int(ch[row-1][w-1][pos]) + int(ch[row+1][w-1][pos])) / 3
+      ch[row][w-1][pos] = (int(ch[row][w-2][pos]) + int(ch[row-1][w-1][pos]) + int(ch[row+1][w-1][pos])) / 3
 
   for col in range(1, w-1, 2):
     ch[h-1][col][pos] = (int(ch[h-1][col-1][pos]) + int(ch[h-2][col][pos]) + int(ch[h-1][col+1][pos]) ) / 3
 
-  print("DEMOSAICING FINISHED")
   return ch
 
 
@@ -160,11 +162,11 @@ def demoblue_edge(ch, w, h, pos):
   for row in range(1, h-1):
     # first pixel in row
     ch[row][0][pos] =  (int(ch[row-1][1][pos]) + int(ch[row+1][1][pos])) / 2 if row % 2 == 0 else ch[row][0][pos]
-    # last pixel in row
-    ch[row][w-1][pos] =  (ch[row-1][w-1][pos] + ch[row+1][w-1][pos]) / 2 if row % 2 == 0 else  ch[row][w-1][pos]
+    # pre-last pixel in row
+    ch[row][w-1][pos] =  (int(ch[row-1][w-1][pos]) + int(ch[row+1][w-1][pos])) / 2 if row % 2 == 0 else  ch[row][w-1][pos]
     for col in range(1, w-1):
       m = np.array([ [0,0,0] ,ch[row-1][col-1],ch[row-1][col],ch[row-1][col+1],ch[row][col-1],ch[row][col],ch[row][col+1], ch[row+1][col-1],ch[row+1][col],ch[row+1][col+1]], dtype=np.int)
-      if col % 2 == 1 and row % 2 == 0: # horizontal
+      if col % 2 == 0 and row % 2 == 1: # horizontal
         gf = (m[4][1] - 2 * m[5][1] + m[6][1]) / 2
         ch[row][col][pos] = max(0, min(255, (m[4][pos] + m[6][pos]) / 2 - gf))
       elif col % 2 == 1 and row % 2 == 0: # vertical
@@ -183,7 +185,7 @@ def demoblue_edge(ch, w, h, pos):
   return ch
 
 def demored_edge(ch, w, h, pos):
-  # first row
+  # first and second row
   for col in range(1, w-1, 2):
     ch[0][col][pos] = (int(ch[0][col-1][pos]) + int(ch[0][col+1][pos])) / 2
   ch[0][w-1][pos] = ch[0][w-2][pos]
@@ -192,7 +194,7 @@ def demored_edge(ch, w, h, pos):
     # first pixel in row
     ch[row][0][pos] =  (int(ch[row-1][0][pos]) + int(ch[row+1][0][pos])) / 2 if row % 2 == 1 else ch[row][0][pos]
     # last pixel in row
-    ch[row][w-1][pos] =  (ch[row-1][w-2][pos] + ch[row+1][w-2][pos]) / 2 if row % 2 == 1 else  ch[row][w-2][pos]
+    ch[row][w-1][pos] = (int(ch[row-1][w-2][pos]) + int(ch[row+1][w-2][pos])) / 2 if row % 2 == 1 else  ch[row][w-2][pos]
     for col in range(1, w-1):
       m = np.array([ [0,0,0] ,ch[row-1][col-1],ch[row-1][col],ch[row-1][col+1],ch[row][col-1],ch[row][col],ch[row][col+1], ch[row+1][col-1],ch[row+1][col],ch[row+1][col+1]], dtype=np.int)
       if col % 2 == 1 and row % 2 == 0: # horizontal
@@ -200,10 +202,17 @@ def demored_edge(ch, w, h, pos):
         ch[row][col][pos] = max(0, min(255, (m[4][pos] + m[6][pos]) / 2 - gf))
       elif col % 2 == 0 and row % 2 == 1: # vertical
         gf = (m[2][1] - 2 * m[5][1] + m[8][1]) / 2
-        ch[row][col][pos] = max(0, min(255, (m[2][pos] + m[8][pos]) / 2 - gf))
+        if col == w-2:
+          ch[row][col][pos] = (m[2][pos] + m[8][pos]) / 2
+        else:
+          ch[row][col][pos] = max(0, min(255, (m[2][pos] + m[8][pos]) / 2 - gf))
       elif col % 2 == 1 and row % 2 == 1 :  # surrounded on diagonal with same colors
-        gf = (m[1][1] + m[3][1] + m[7][1] + m[9][1] - 4 * m[5][1]) / 4
-        ch[row][col][pos] = max(0, min(255, (m[1][pos] + m[3][pos] + m[7][pos] + m[9][1]) / 4 - gf))
+        if row == 1 or col == 1:
+          ch[row][col][pos] = (m[1][pos] + m[3][pos] + m[7][pos] + m[9][1]) / 4
+        else:
+          gf = (m[1][1] + m[3][1] + m[7][1] + m[9][1] - 4 * m[5][1]) / 4
+          ch[row][col][pos] = max(0, min(255, (m[1][pos] + m[3][pos] + m[7][pos] + m[9][1]) / 4 - gf))
+
   # last row
   for col in range(1, w-1):
     if col % 2 == 0:
@@ -221,6 +230,15 @@ def compose_from_channels(red, green, blue, w, h):
       r[i][j][0], r[i][j][1], r[i][j][2] = red[i][j][0], green[i][j][1], blue[i][j][2]
   return r
 
+def decompose_from_channels(c, w, h):
+  r = np.empty_like(c)
+  g = np.empty_like(c)
+  b = np.empty_like(c)
+  for i in range(h):
+    for j in range(w):
+      r[i][j][0], g[i][j][1], b[i][j][2] = c[i][j]
+  return r,g,b
+
 def gamma_correction(level, img):
   print("GAMMA CORRECTION (" + str(level) + ")")
   coef = 1.0 / level
@@ -235,9 +253,10 @@ def demosaicing(primary, redch, bluech, edge_directed=False, rb_reversed=False, 
   red = np.empty_like(green)
   blue = np.empty_like(green)
   result = np.empty_like(green)
+  print("DEMOSAICING START")
   if edge_directed:
     result = compose_from_channels(redch, primary, bluech, width, height)
-    green = demosaicing_edge(result, 1)
+    result = demosaicing_edge(result, 1)
     if not rb_reversed:
       result = demored_edge(result, width, height, 0)
       result = demoblue_edge(result, width, height, 2)
@@ -253,9 +272,11 @@ def demosaicing(primary, redch, bluech, edge_directed=False, rb_reversed=False, 
       red = demoblue(redch, width, height, 0)
       blue = demored(bluech, width, height, 2)
     result = compose_from_channels(red, green, blue, width, height)
+  print("DEMOSAICING FINISHED")
 
   if plot_everything:
     if edge_directed:
+      red,green,blue = decompose_from_channels(result, width, height)
       nparray2png(red, 'dem_red_ch.png')
       nparray2png(green, 'dem_green_ch.png')
       nparray2png(blue, 'dem_blue_ch.png')
@@ -378,5 +399,5 @@ if __name__ == '__main__':
                           help='An edge directed switch')
 
   args = parser.parse_args()
-  pipe(args.src, 'result.png', args.filter_density, args.gamma, args.edge_directed, args.channels_reversed, args.print_everything)
+  pipe(args.src, 'result.png', args.gamma, args.filter_density, args.edge_directed, args.channels_reversed, args.print_everything)
 

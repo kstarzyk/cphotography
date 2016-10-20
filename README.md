@@ -2,7 +2,7 @@
 *DISCLAIMER*: It's student project. DON'T treat it as reference of good code or how to 'make things done' in any way, please!
 
 You can use both python and python3.
-Scroll down to see effects
+Scroll down to see effects.
 
 ## Dependencies
 - PIL
@@ -38,7 +38,6 @@ optional arguments:
 ```
 $ python3 pipe.py lighthouse_RAW.png  --gamma 2.2 --filter_density=1 --print_everything --edge_directed
 $ python3 pipe.py signs-small.png  --gamma 1.9 --print_everything --edge_directed --channels_reversed
-
 ```
 
 ### Base picture
@@ -49,6 +48,6 @@ $ python3 pipe.py signs-small.png  --gamma 1.9 --print_everything --edge_directe
 ![Edge directed](results/result.png)
 ### Demosaicing (edge directed) + gamma correction
 ![Gamma](results/result_corrected.png)
-### Demosaicing (edge directed) + median filter + gamma correction
+### Demosaicing (edge directed) + median filter (density: 1) + gamma correction (gamma: 2.2)
 ![Median filter](results/result_corrected_with_median_filter.png)
 
